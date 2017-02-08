@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <br>
+    <br>
+
+    <form method="GET" action="/newpost">
+        <input type="submit" value="Create a new post!">
+    </form>
+
+    <br>
+    <br>
+
+    {% for post_text in posts %}
+        <div class="post">
+            <div class="post-title">{{post_text.title}}</div>
+            <div class="post-body">{{post_text.post_text}}</div>
+        </div>
+    {% endfor %}
+
+    </body>
+</html>
+
+{% endblock %}
