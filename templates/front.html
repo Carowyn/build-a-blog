@@ -14,7 +14,7 @@
 
     {% for post_text in posts %}
         <div class="post">
-            <div class="post-title">{{post_text.title}}</div>
+            <div class="post-title"><a href="/blog/{{post_text.key().id()}}">{{post_text.title}}</a></div>
             <div class="post-body">{{post_text.post_text}}</div>
         </div>
     {% endfor %}

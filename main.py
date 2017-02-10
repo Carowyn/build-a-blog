@@ -43,18 +43,24 @@ class MainPage(Handler):
     def get(self):
         self.redirect("/blog")
 
-class ViewPostHandler(Handler):
+class ManyPostHandler(Handler):
     def render_front(self, title="", post_text=""):
         posts = db.GqlQuery("SELECT * FROM NewPost ORDER BY created DESC LIMIT 5 ")
         self.render("front.html", title=title, post_text=post_text, posts=posts)
 
+    def get(self):
+        self.render_front()
+
+class ViewPostHandler(Handler):
+    def render_single(self, id):
+        id = int(id)
+        single_post = NewPost.get_by_id(id)
+        self.render("single.html", single_post=single_post)
+
+
     def get(self, id):
-        if id:
-            single_post = Post.get_by_id(id)
-            self.render("single.html")
-###ASK HOW TO MAKE THIS WORK IN SLACK TOMORROW GRRRRRRRRR
-        else:
-            self.render_front()
+        self.render_single(id)
+
 
 class NewPostHandler(Handler):
     def render_new(self, title="", post_text="", error=""):
@@ -71,7 +77,10 @@ class NewPostHandler(Handler):
             full_post = NewPost(title=title, post_text=post_text)
             full_post.put()
 
-            self.redirect("/blog")
+
+            new_id = full_post.key().id()
+
+            self.redirect("/blog/<id:\d+>", new_id=new_id)
 
         else:
             error = "We need both a title and a post!"
@@ -79,6 +88,13 @@ class NewPostHandler(Handler):
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
+    ('/blog', ManyPostHandler),
     webapp2.Route('/blog/<id:\d+>', ViewPostHandler),
     ('/newpost', NewPostHandler)
 ], debug=True)
+
+
+
+
+
+#ids = self.request.get('id')

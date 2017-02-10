@@ -11,15 +11,9 @@
 
     <br>
     <br>
-
-    {% for post_text in posts %}
         <div class="post">
-            <div class="post-title">{{post_text.title}}</div>
-            <div class="post-body">{{post_text.post_text}}</div>
+            <div class="post-title">{{single_post.title}}</div>
+            <div class="post-body">{{single_post.post_text}}</div>
         </div>
-    {% endfor %}
-
-    </body>
-</html>
 
 {% endblock %}
