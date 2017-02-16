@@ -2,15 +2,8 @@
 
 {% block content %}
 
-    <br>
-    <br>
-
-    <form method="GET" action="/newpost">
-        <input type="submit" value="Create a new post!">
-    </form>
-
-    <br>
-    <br>
+<br>
+<br>
 
     {% for post_text in posts %}
         <div class="post">
@@ -19,7 +12,9 @@
         </div>
     {% endfor %}
 
-    </body>
-</html>
+<br>
+<br>
+
+{{next_only}}{{both}}{{prev_only}}{{neither}}
 
 {% endblock %}

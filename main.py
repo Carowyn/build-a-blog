@@ -17,13 +17,20 @@
 import webapp2
 import os
 import jinja2
+import time
 
 from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
 
-class Handler(webapp2.RequestHandler):
+def get_posts(limit, offset): # Querys DB
+    limit = int(limit)
+    offset = int(offset)
+    page = db.GqlQuery("SELECT * FROM NewPost ORDER BY created DESC LIMIT {} OFFSET {}".format(limit, offset))
+    return page
+
+class Handler(webapp2.RequestHandler): # Builds the Ancestor Handler
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
@@ -34,24 +41,55 @@ class Handler(webapp2.RequestHandler):
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
-class NewPost(db.Model):
+class NewPost(db.Model): # Database Buildingblocks
     title = db.StringProperty(required = True)
     post_text = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add = True)
 
-class MainPage(Handler):
+class MainPage(Handler): #First Landing Page
     def get(self):
         self.redirect("/blog")
 
-class ManyPostHandler(Handler):
+class ManyPostHandler(Handler):# MAIN PAGE with 5 posts per page
     def render_front(self, title="", post_text=""):
-        posts = db.GqlQuery("SELECT * FROM NewPost ORDER BY created DESC LIMIT 5 ")
-        self.render("front.html", title=title, post_text=post_text, posts=posts)
+        get_page = self.request.get("page")
+        if get_page:
+            get_page = int(get_page)
+            offset = (get_page * 5) - 5
+            posts = get_posts(5, offset)
+            self.render("front.html", title=title, post_text=post_text, posts=posts)
+        else:
+            offset = 0
+            self.redirect("blog?page=1")
 
     def get(self):
-        self.render_front()
+        get_page = self.request.get("page")
+        if get_page:
+            get_page = int(get_page)
+            offset = (get_page * 5) - 5
+            page_size = 5
+            all_posts = db.GqlQuery("SELECT * FROM NewPost")
+            total_posts = all_posts.count(offset)
+            next_page = get_page + 1
+            prev_page = get_page - 1
 
-class ViewPostHandler(Handler):
+        if total_posts > offset and get_page == 1:
+            next_only = '<p><span id="off"><<< Previous </span> | <a href="/blog?page={}"> Next >>></a>'.format(next_page)
+            self.render_front(next_only)
+
+        elif total_posts > (offset + 5) and get_page > 1:
+            both = '<p><a href="/blog?page={}"><<< Previous </a> | <a href="/blog?page={}"> Next >>></a></p>'.format(prev_page, next_page)
+            self.render_front(both)
+
+        elif total_posts < (offset +5) and get_page > 1:
+            prev_only = '<p><a href="/blog?page={}"><<< Previous </a> | <span id="off"> Next >>></p>'.format(prev_page)
+            self.render_front(prev_only)
+
+        elif total_posts <= 5:
+            neither = '<p><span id="off"><<< Previous </span> | <span id="off"> Next >>></p>'
+            self.render_front(neither)
+
+class ViewPostHandler(Handler): # SINGLE POST PAGE
     def render_single(self, id):
         id = int(id)
         single_post = NewPost.get_by_id(id)
@@ -62,7 +100,7 @@ class ViewPostHandler(Handler):
         self.render_single(id)
 
 
-class NewPostHandler(Handler):
+class NewPostHandler(Handler): # NEW POST PAGE
     def render_new(self, title="", post_text="", error=""):
         self.render("newpost.html", title=title, post_text=post_text, error=error)
 
