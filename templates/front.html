@@ -7,6 +7,7 @@
     {% for post_text in posts %}
         <div class="post">
             <div class="post-title"><a href="/blog/{{post_text.key().id()}}">{{post_text.title}}</a></div>
+            <br>
             <div class="post-body">{{post_text.post_text}}</div>
         </div>
 
@@ -18,7 +19,7 @@
 <br>
 <br>
 
-<p>{{previous_link|safe}} | {{next_link|safe}} </p>
+<p>{{previous_link|safe}} | {{next_link|safe}}</p>
 
 <br>
 <br>

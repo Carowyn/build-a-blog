@@ -69,14 +69,8 @@ class ManyPostHandler(Handler):# MAIN PAGE with 5 posts per page
             page_size = 5
             p = NewPost.all()
             total_posts = p.count()
-            # all_posts = db.GqlQuery("SELECT * FROM NewPost")
-            # total_posts = all_posts.count(offset)
             next_page = get_page + 1
             prev_page = get_page - 1
-# q = Person.all()
-# q.filter("last_name =", "Smith")
-# q.filter("height <=", max_height)
-# q.order("-height")
 
         else:
             get_page = 1
@@ -84,8 +78,6 @@ class ManyPostHandler(Handler):# MAIN PAGE with 5 posts per page
             page_size = 5
             p = NewPost.all()
             total_posts = p.count()
-            # all_posts = db.GqlQuery("SELECT * FROM NewPost")
-            # total_posts = all_posts.count(offset)
             next_page = get_page + 1
             prev_page = get_page - 1
 
@@ -99,7 +91,7 @@ class ManyPostHandler(Handler):# MAIN PAGE with 5 posts per page
             next_link = '<a href="/blog?page={}"> Next >>></a>'.format(next_page)
             self.render_front(previous_link=previous_link, next_link=next_link)
 
-        elif total_posts < (offset +5) and get_page > 1:
+        elif total_posts <= (offset +5) and get_page > 1:
             previous_link = '<a href="/blog?page={}"><<< Previous </a>'.format(prev_page)
             next_link = '<span id="off"> Next >>></span>'
             self.render_front(previous_link=previous_link, next_link=next_link)
@@ -115,10 +107,8 @@ class ViewPostHandler(Handler): # SINGLE POST PAGE
         single_post = NewPost.get_by_id(id)
         self.render("single.html", single_post=single_post)
 
-
     def get(self, id):
         self.render_single(id)
-
 
 class NewPostHandler(Handler): # NEW POST PAGE
     def render_new(self, title="", post_text="", error=""):
@@ -153,9 +143,3 @@ app = webapp2.WSGIApplication([
     webapp2.Route('/blog/<id:\d+>', ViewPostHandler),
     ('/newpost', NewPostHandler)
 ], debug=True)
-
-
-
-
-
-#ids = self.request.get('id')
