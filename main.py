@@ -17,7 +17,6 @@
 import webapp2
 import os
 import jinja2
-import time
 
 from google.appengine.ext import db
 
@@ -51,13 +50,13 @@ class MainPage(Handler): #First Landing Page
         self.redirect("/blog")
 
 class ManyPostHandler(Handler):# MAIN PAGE with 5 posts per page
-    def render_front(self, title="", post_text=""):
+    def render_front(self, title="", post_text="", previous_link="", next_link=""):
         get_page = self.request.get("page")
         if get_page:
             get_page = int(get_page)
             offset = (get_page * 5) - 5
             posts = get_posts(5, offset)
-            self.render("front.html", title=title, post_text=post_text, posts=posts)
+            self.render("front.html", title=title, post_text=post_text, posts=posts, previous_link=previous_link, next_link=next_link)
         else:
             offset = 0
             self.redirect("blog?page=1")
@@ -68,26 +67,47 @@ class ManyPostHandler(Handler):# MAIN PAGE with 5 posts per page
             get_page = int(get_page)
             offset = (get_page * 5) - 5
             page_size = 5
-            all_posts = db.GqlQuery("SELECT * FROM NewPost")
-            total_posts = all_posts.count(offset)
+            p = NewPost.all()
+            total_posts = p.count()
+            # all_posts = db.GqlQuery("SELECT * FROM NewPost")
+            # total_posts = all_posts.count(offset)
+            next_page = get_page + 1
+            prev_page = get_page - 1
+# q = Person.all()
+# q.filter("last_name =", "Smith")
+# q.filter("height <=", max_height)
+# q.order("-height")
+
+        else:
+            get_page = 1
+            offset = (get_page * 5) - 5
+            page_size = 5
+            p = NewPost.all()
+            total_posts = p.count()
+            # all_posts = db.GqlQuery("SELECT * FROM NewPost")
+            # total_posts = all_posts.count(offset)
             next_page = get_page + 1
             prev_page = get_page - 1
 
         if total_posts > offset and get_page == 1:
-            next_only = '<p><span id="off"><<< Previous </span> | <a href="/blog?page={}"> Next >>></a>'.format(next_page)
-            self.render_front(next_only)
+            previous_link = '<span id="off"><<< Previous </span>'
+            next_link = '<a href="/blog?page={}"> Next >>></a>'.format(next_page)
+            self.render_front(previous_link=previous_link, next_link=next_link)
 
         elif total_posts > (offset + 5) and get_page > 1:
-            both = '<p><a href="/blog?page={}"><<< Previous </a> | <a href="/blog?page={}"> Next >>></a></p>'.format(prev_page, next_page)
-            self.render_front(both)
+            previous_link = '<a href="/blog?page={}"><<< Previous </a>'.format(prev_page)
+            next_link = '<a href="/blog?page={}"> Next >>></a>'.format(next_page)
+            self.render_front(previous_link=previous_link, next_link=next_link)
 
         elif total_posts < (offset +5) and get_page > 1:
-            prev_only = '<p><a href="/blog?page={}"><<< Previous </a> | <span id="off"> Next >>></p>'.format(prev_page)
-            self.render_front(prev_only)
+            previous_link = '<a href="/blog?page={}"><<< Previous </a>'.format(prev_page)
+            next_link = '<span id="off"> Next >>></span>'
+            self.render_front(previous_link=previous_link, next_link=next_link)
 
         elif total_posts <= 5:
-            neither = '<p><span id="off"><<< Previous </span> | <span id="off"> Next >>></p>'
-            self.render_front(neither)
+            previous_link = '<span id="off"><<< Previous </span>'
+            next_link = '<span id="off"> Next >>></span>'
+            self.render_front(previous_link=previous_link, next_link=next_link)
 
 class ViewPostHandler(Handler): # SINGLE POST PAGE
     def render_single(self, id):
@@ -104,6 +124,11 @@ class NewPostHandler(Handler): # NEW POST PAGE
     def render_new(self, title="", post_text="", error=""):
         self.render("newpost.html", title=title, post_text=post_text, error=error)
 
+    def render_single(self, id):
+        id = int(id)
+        single_post = NewPost.get_by_id(id)
+        self.render("single.html", single_post=single_post)
+
     def get(self):
         self.render_new()
 
@@ -115,14 +140,12 @@ class NewPostHandler(Handler): # NEW POST PAGE
             full_post = NewPost(title=title, post_text=post_text)
             full_post.put()
 
-
-            new_id = full_post.key().id()
-
-            self.redirect("/blog/<id:\d+>", new_id=new_id)
-
         else:
             error = "We need both a title and a post!"
-            self.render_new(title, post_text, error)
+            return self.render_new(title, post_text, error)
+
+        new_id = full_post.key().id()
+        self.render_single(new_id)
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
