@@ -2,41 +2,29 @@
 
 {% block content %}
 
-<br>
+    <br>
 
     {% for post_text in posts %}
+
         <div class="post">
             <div class="post-title"><a href="/blog/{{post_text.key().id()}}">{{post_text.title}}</a></div>
-            <br>
             <div class="post-body">{{post_text.post_text}}</div>
         </div>
 
         <br>
+
         <hr>
+
         <br>
+
     {% endfor %}
 
-<br>
-<br>
+    <br>
 
-<p>{{previous_link|safe}} | {{next_link|safe}}</p>
+    <p id="prev_next">{{previous_link|safe}} | {{next_link|safe}}</p>
 
-<br>
-<br>
-
-</body>
-
-<footer>
-
-<address>
-    <p><br>Contents written by: <span id='myname'><b>Brittani Luce</b></span></p>
-    <p>Written for: LaunchCode 101 -- User Sign-Up
-    <p>Thank you for visiting!</p>
-</address>
-
-    <p id='copy'>&#169;Brittani Luce, 2017
-    <br><br></p>
-
-</footer>
+    <br>
+    <br>
+    <br>
 
 {% endblock %}
